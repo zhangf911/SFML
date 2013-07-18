@@ -347,7 +347,7 @@ void RenderTarget::popGLStates()
 void RenderTarget::resetGLStates()
 {
     // Check here to make sure a context change does not happen after activate(true)
-    bool shaderAvailable = Shader::isAvailable();
+    bool shaderAvailable = Shader::isAvailable(0);
 
     if (activate(true))
     {
