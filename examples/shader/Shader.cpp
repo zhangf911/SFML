@@ -23,6 +23,10 @@ public :
 
     bool onLoad()
     {
+        // Check if shaders are supported
+        if (!sf::Shader::isAvailable())
+            return false;
+
         // Load the texture and initialize the sprite
         if (!m_texture.loadFromFile("resources/background.jpg"))
             return false;
@@ -69,6 +73,10 @@ public :
 
     bool onLoad()
     {
+        // Check if shaders are supported
+        if (!sf::Shader::isAvailable())
+            return false;
+
         // Create the text
         m_text.setString("Praesent suscipit augue in velit pulvinar hendrerit varius purus aliquam.\n"
                          "Mauris mi odio, bibendum quis fringilla a, laoreet vel orci. Proin vitae vulputate tortor.\n"
@@ -133,6 +141,10 @@ public :
 
     bool onLoad()
     {
+        // Check if shaders are supported
+        if (!sf::Shader::isAvailable())
+            return false;
+
         // Create the points
         m_points.setPrimitiveType(sf::Points);
         for (int i = 0; i < 40000; ++i)
@@ -188,6 +200,10 @@ public :
 
     bool onLoad()
     {
+        // Check if shaders are supported
+        if (!sf::Shader::isAvailable())
+            return false;
+
         // Create the off-screen surface
         if (!m_surface.create(800, 600))
             return false;
@@ -259,6 +275,84 @@ private:
 
 
 ////////////////////////////////////////////////////////////
+// "Geometry" geometry shader example
+////////////////////////////////////////////////////////////
+class Geometry : public Effect
+{
+public:
+
+    Geometry() :
+        Effect("geometry shader billboards"),
+        m_pointCloud(sf::Points, 10000)
+    {
+    }
+
+    bool onLoad()
+    {
+        // Check if shaders are supported
+        if (!sf::Shader::isAvailable(sf::Shader::Vertex | sf::Shader::Fragment | sf::Shader::Geometry))
+            return false;
+
+        // Move the points in the point cloud to random positions
+        for (std::size_t i = 0; i < 10000; i++)
+        {
+            // Spread the coordinates from -480 to +480
+            // So they'll always fill the viewport at 800x600
+            m_pointCloud[i].position.x = rand() % 960 - 480.f;
+            m_pointCloud[i].position.y = rand() % 960 - 480.f;
+        }
+
+        // Load the texture
+        if (!m_logoTexture.loadFromFile("resources/logo.png"))
+            return false;
+
+        // Load the shader
+        if (!m_shader.loadFromFile("resources/billboard.vert", "resources/billboard.geom", "resources/billboard.frag"))
+            return false;
+        m_shader.setParameter("texture", sf::Shader::CurrentTexture);
+
+        // Set the render resolution (used for proper scaling)
+        m_shader.setParameter("resolution", sf::Vector2f(800, 600));
+
+        return true;
+    }
+
+    void onUpdate(float time, float x, float y)
+    {
+        // Reset our transformation matrix
+        m_transform = sf::Transform::Identity;
+        // Move to the center of the window
+        m_transform.translate(400, 300);
+        // Rotate everything based on cursor position
+        m_transform.rotate(x * 360.f);
+
+        // Adjust billboard size to scale between 25 and 75
+        float size = 25 + std::abs(y) * 50;
+
+        // Update the shader parameter
+        m_shader.setParameter("size", sf::Vector2f(size, size));
+    }
+
+    void onDraw(sf::RenderTarget& target, sf::RenderStates states) const
+    {
+        // Prepare the render state
+        states.shader = &m_shader;
+        states.texture = &m_logoTexture;
+        states.transform = m_transform;
+        // Draw the point cloud
+        target.draw(m_pointCloud, states);
+    }
+
+private:
+
+    sf::Texture m_logoTexture;
+    sf::Transform m_transform;
+    sf::Shader m_shader;
+    sf::VertexArray m_pointCloud;
+};
+
+
+////////////////////////////////////////////////////////////
 /// Entry point of application
 ///
 /// \return Application exit code
@@ -282,6 +376,7 @@ int main()
     effects.push_back(new WaveBlur);
     effects.push_back(new StormBlink);
     effects.push_back(new Edge);
+    effects.push_back(new Geometry);
     std::size_t current = 0;
 
     // Initialize them

@@ -32,7 +32,7 @@ public :
 
     void load()
     {
-        m_isLoaded = sf::Shader::isAvailable() && onLoad();
+        m_isLoaded = onLoad();
     }
 
     void update(float time, float x, float y)
