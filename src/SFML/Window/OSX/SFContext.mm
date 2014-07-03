@@ -140,6 +140,9 @@ void SFContext::createContext(SFContext* shared,
                               unsigned int bitsPerPixel,
                               const ContextSettings& settings)
 {
+    // Save the settings. (OpenGL version is updated elsewhere.)
+    m_settings = settings;
+
     // Choose the attributes of OGL context.
     std::vector<NSOpenGLPixelFormatAttribute> attrs;
     attrs.reserve(20); // max attributes (estimation).
@@ -156,12 +159,12 @@ void SFContext::createContext(SFContext* shared,
     }
 
     attrs.push_back(NSOpenGLPFADepthSize);
-    attrs.push_back((NSOpenGLPixelFormatAttribute)settings.depthBits);
+    attrs.push_back((NSOpenGLPixelFormatAttribute)m_settings.depthBits);
 
     attrs.push_back(NSOpenGLPFAStencilSize);
-    attrs.push_back((NSOpenGLPixelFormatAttribute)settings.stencilBits);
+    attrs.push_back((NSOpenGLPixelFormatAttribute)m_settings.stencilBits);
 
-    if (settings.antialiasingLevel > 0)
+    if (m_settings.antialiasingLevel > 0)
     {
         /*
          * Antialiasing techniques are described in the
@@ -183,30 +186,46 @@ void SFContext::createContext(SFContext* shared,
 
         // Antialiasing level
         attrs.push_back(NSOpenGLPFASamples);
-        attrs.push_back((NSOpenGLPixelFormatAttribute)settings.antialiasingLevel);
+        attrs.push_back((NSOpenGLPixelFormatAttribute)m_settings.antialiasingLevel);
 
         // No software renderer - only hardware renderer
         attrs.push_back(NSOpenGLPFAAccelerated);
     }
 
     // Support for OpenGL 3.2 on Mac OS X Lion and later:
-    // SFML 2 Graphics module uses some OpenGL features that are deprecated
-    // in OpenGL 3.2 and that are no more available with core context.
+    // SFML 2 Graphics module uses some OpenGL features that are deprecated in
+    // OpenGL 3.0 and that are no longer available in 3.1 and 3.2+ with a core context.
     // Therefore the Graphics module won't work as expected.
 
-    // 2.x are mapped to 2.1 since Apple only support that legacy version.
+    // 1.x/2.x are mapped to 2.1 since Apple only support that legacy version.
     // >=3.0 are mapped to a 3.2 core profile.
-    bool legacy = settings.majorVersion < 3;
+    bool legacy = m_settings.majorVersion < 3;
 
     if (legacy)
     {
+        m_settings.compatibilityFlag = true;
+        m_settings.majorVersion = 2;
+        m_settings.minorVersion = 1;
         attrs.push_back(NSOpenGLPFAOpenGLProfile);
         attrs.push_back(NSOpenGLProfileVersionLegacy);
     }
     else
     {
+        if (m_settings.compatibilityFlag)
+        {
+            sf::err() << "Warning. Compatibility profile not supported on this platform." << std::endl;
+            m_settings.compatibilityFlag = false;
+        }
+        m_settings.majorVersion = 3;
+        m_settings.minorVersion = 2;
         attrs.push_back(NSOpenGLPFAOpenGLProfile);
         attrs.push_back(NSOpenGLProfileVersion3_2Core);
+    }
+
+    if (m_settings.debugFlag)
+    {
+        sf::err() << "Warning. OpenGL debugging not supported on this platform." << std::endl;
+        m_settings.debugFlag = false;
     }
 
     attrs.push_back((NSOpenGLPixelFormatAttribute)0); // end of array
@@ -242,8 +261,27 @@ void SFContext::createContext(SFContext* shared,
     // Free up.
     [pixFmt release];
 
-    // Save the settings. (OpenGL version is updated elsewhere.)
-    m_settings = settings;
+    // Perform checks to inform the user if they are getting a context they might not have expected
+
+    int version = m_settings.majorVersion * 10 + m_settings.minorVersion;
+    int requestedVersion = settings.majorVersion * 10 + settings.minorVersion;
+
+    if ((m_settings.compatibilityFlag != settings.compatibilityFlag) ||
+        (m_settings.debugFlag         != settings.debugFlag)         ||
+        (version                      <  requestedVersion))
+    {
+        err() << "Warning: The created OpenGL context does not fully meet the settings that were requested" << std::endl;
+        err() << "Requested: version = " << settings.majorVersion << "." << settings.minorVersion
+              << std::boolalpha
+              << " ; compatibility = " << settings.compatibilityFlag
+              << " ; debug = " << settings.debugFlag
+              << std::noboolalpha << std::endl;
+        err() << "Created: version = " << m_settings.majorVersion << "." << m_settings.minorVersion
+              << std::boolalpha
+              << " ; compatibility = " << m_settings.compatibilityFlag
+              << " ; debug = " << m_settings.debugFlag
+              << std::noboolalpha << std::endl;
+    }
 }
 
 } // namespace priv

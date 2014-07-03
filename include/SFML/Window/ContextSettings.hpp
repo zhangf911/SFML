@@ -38,19 +38,23 @@ struct ContextSettings
     ////////////////////////////////////////////////////////////
     /// \brief Default constructor
     ///
-    /// \param depth        Depth buffer bits
-    /// \param stencil      Stencil buffer bits
-    /// \param antialiasing Antialiasing level
-    /// \param major        Major number of the context version
-    /// \param minor        Minor number of the context version
+    /// \param depth         Depth buffer bits
+    /// \param stencil       Stencil buffer bits
+    /// \param antialiasing  Antialiasing level
+    /// \param major         Major number of the context version
+    /// \param minor         Minor number of the context version
+    /// \param compatibility Compatibility context flag
+    /// \param debug         Debug context flag
     ///
     ////////////////////////////////////////////////////////////
-    explicit ContextSettings(unsigned int depth = 0, unsigned int stencil = 0, unsigned int antialiasing = 0, unsigned int major = 2, unsigned int minor = 0) :
+    explicit ContextSettings(unsigned int depth = 0, unsigned int stencil = 0, unsigned int antialiasing = 0, unsigned int major = 2, unsigned int minor = 1, bool compatibility = true, bool debug = false) :
     depthBits        (depth),
     stencilBits      (stencil),
     antialiasingLevel(antialiasing),
     majorVersion     (major),
-    minorVersion     (minor)
+    minorVersion     (minor),
+    compatibilityFlag(compatibility),
+    debugFlag        (debug)
     {
     }
 
@@ -62,6 +66,8 @@ struct ContextSettings
     unsigned int antialiasingLevel; ///< Level of antialiasing
     unsigned int majorVersion;      ///< Major number of the context version to create
     unsigned int minorVersion;      ///< Minor number of the context version to create
+    bool         compatibilityFlag; ///< Whether this context is a compatibility context
+    bool         debugFlag;         ///< Whether this context has debugging enabled
 };
 
 } // namespace sf
@@ -76,10 +82,11 @@ struct ContextSettings
 ///
 /// ContextSettings allows to define several advanced settings
 /// of the OpenGL context attached to a window. All these
-/// settings have no impact on the regular SFML rendering
-/// (graphics module) -- except the anti-aliasing level, so
-/// you may need to use this structure only if you're using
-/// SFML as a windowing system for custom OpenGL rendering.
+/// settings with the exception of the compatibility flag
+/// and anti-aliasing level have no impact on the regular
+/// SFML rendering (graphics module), so you may need to use
+/// this structure only if you're using SFML as a windowing
+/// system for custom OpenGL rendering.
 ///
 /// The depthBits and stencilBits members define the number
 /// of bits per pixel requested for the (respectively) depth
@@ -93,6 +100,23 @@ struct ContextSettings
 /// equal to 3.0 are relevant; versions lesser than 3.0 are
 /// all handled the same way (i.e. you can use any version
 /// < 3.0 if you don't want an OpenGL 3 context).
+///
+/// When requesting a context with a version greater or equal
+/// to 3.2, you have the option of specifying whether the
+/// context should follow the core or compatibility profile
+/// of all newer (>= 3.2) OpenGL specifications. For versions
+/// 3.0 and 3.1 there is only the core profile. The default
+/// value of compatibility is true. You only need to set it
+/// to false if you want a core profile context to use with
+/// your own OpenGL rendering.
+/// <b>Warning: The graphics module will not function if you
+/// request a core profile context. Make sure it is set to false
+/// (the default) if you want to use the graphics module.</b>
+///
+/// Setting the debug flag to true will request a context with
+/// additional debugging features enabled. Depending on the
+/// system, this might be required for advanced OpenGL debugging.
+/// OpenGL debugging is disabled by default.
 ///
 /// Please note that these values are only a hint.
 /// No failure will be reported if one or more of these values
