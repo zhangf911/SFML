@@ -1,3 +1,73 @@
+SFML 2.3
+========
+
+Also available on the website: http://www.sfml-dev.org/changelog.php#sfml-2.3
+
+General
+=======
+
+* Examples only link against sfml-main in release mode (#610, #766)
+* Replaced unsigned int with std::size_t for array indices and sizes (#739)
+* Fixed some issues with the Doxygen documentation (#750)
+* Added support for EditorConfig (#751)
+* Hide success message for CMake in quiet mode (#753)
+* Improve documentation for statuses with sf::Ftp (#763)
+* [OS X] Relaxed CMake installation rules regarding framework dependencies (#767)
+* [Android] Updated toolchain file and dependencies (#791)
+* [Linux] Fixed missing pthread dependency (#794)
+* Moved stb_image into the extlibs directory (#795)
+* Changed the SOVERSION to major.minor (#812)
+
+Window
+======
+
+Features
+--------
+* Added new events for handling high-precision scrolling (#95, #810, #837)
+* Switch from Xlib to XCB (#200, #319, #694, #780, #813, #825)
+* Added support for OpenGL 3 core context creation (#654, #779)
+
+Bugfixes
+--------
+* [Linux] Fixed Alt+F4 not getting triggered in window mode (#274)
+* Fixed glXSwapIntervalSGI being broken for some driver implementations (#727, #779)
+* [iOS] Fixed various issues including stencil bits, device orientation and retina support (#748)
+* [OS X] Fixed typo in JoystickImpl.cpp to prevent a crash (#762, #765)
+* Fixed simultaneous context operations causing crashes on some AMD hardware (#778, #779)
+* [OS X] Fixed an issue in InputImpl::getSFOpenGLViewFromSFMLWindow (#782, #792)
+* Fixed joystick identification (#809, #811)
+
+Graphics
+========
+
+Features
+--------
+* Added a new constructor to sf::Color that takes an sf::Uint32 (#722)
+* Updated stb_image to v2.02 (#777)
+* Updated FreeType to v2.5.5 (#799, #804)
+
+Audio
+=====
+
+Features
+--------
+* Dropped libsndfile and started using Vorbis, FLAC and OGG directly (#604, #757)
+* Added a FLAC file to the sound example (#815)
+
+Bugfixes
+--------
+* Fixed access violation error in the destructor of sf::AudioDevice (#30, #602)
+* [OS X] Fixed threading issue with sf::SoundStream and OpenAL (#541, #831)
+
+Network
+=======
+
+Bugfixes
+--------
+* Fixed sf::TcpSocket not handling partial sends properly (#749, #796)
+
+
+
 SFML 2.2
 ========
 
